@@ -12,11 +12,11 @@ const Students = (): React.ReactElement => {
   const { students, deleteStudentMutate } = useStudents();
   const queryClient = useQueryClient();
 
-  // Мутация добавления — по требованию ТЗ в верхнем компоненте
+
   const createStudentMutation = useMutation({
     mutationFn: addStudentApi,
     onSuccess: () => {
-      // обновим список студентов
+
       queryClient.invalidateQueries({ queryKey: ['students'] });
     },
   });

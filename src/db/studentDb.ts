@@ -8,7 +8,7 @@ sqlite3.verbose();
 
 const DB_PATH = process.env.DB ?? './db/vki-web.db';
 
-/** Получение студентов */
+
 export const getStudentsDb = async (): Promise<StudentInterface[]> => {
   const db = new sqlite3.Database(DB_PATH);
 
@@ -31,7 +31,7 @@ export const getStudentsDb = async (): Promise<StudentInterface[]> => {
   return students;
 };
 
-/** Добавление одного студента */
+
 export const addStudentDb = async (payload: {
   firstName: string;
   lastName: string;
@@ -59,7 +59,7 @@ export const addStudentDb = async (payload: {
   return created;
 };
 
-/** Удаление студента по id */
+
 export const deleteStudentDb = async (studentId: number): Promise<number> => {
   const db = new sqlite3.Database(DB_PATH);
 
@@ -82,7 +82,7 @@ export const deleteStudentDb = async (studentId: number): Promise<number> => {
   return studentId;
 };
 
-/** Тестовый массовый insert — уже был у тебя, оставляю */
+
 export const addRandomStudentsDb = async (): Promise<FioInterface[]> => {
   const db = new sqlite3.Database(DB_PATH);
   const fios: FioInterface[] = Array.from({ length: 10 }, () => getRandomFio());

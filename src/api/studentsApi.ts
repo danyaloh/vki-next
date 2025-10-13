@@ -7,7 +7,7 @@ export interface AddStudentPayload {
   groupId: number;
 }
 
-/** Получение списка студентов */
+
 export const getStudentsApi = async (): Promise<StudentInterface[]> => {
   try {
     const response = await fetch(`${process.env.NEXT_PUBLIC_API}students`);
@@ -22,7 +22,8 @@ export const getStudentsApi = async (): Promise<StudentInterface[]> => {
   }
 };
 
-/** Добавление студента */
+
+
 export const addStudentApi = async (payload: AddStudentPayload): Promise<{ id: number } & AddStudentPayload> => {
   try {
     const response = await fetch(`${process.env.NEXT_PUBLIC_API}students`, {
@@ -41,7 +42,8 @@ export const addStudentApi = async (payload: AddStudentPayload): Promise<{ id: n
   }
 };
 
-/** Удаление студента по id */
+
+
 export const deleteStudentApi = async (studentId: number): Promise<number> => {
   try {
     const response = await fetch(`${process.env.NEXT_PUBLIC_API}students/${studentId}`, { method: 'DELETE' });
