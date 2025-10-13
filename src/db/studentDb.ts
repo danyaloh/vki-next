@@ -2,83 +2,109 @@ import sqlite3 from 'sqlite3';
 
 import type StudentInterface from '@/types/StudentInterface';
 import getRandomFio from '@/utils/getRandomFio';
-import FioInterface from '@/types/FioInterface';
+import type FioInterface from '@/types/FioInterface';
 
 sqlite3.verbose();
 
-/**
- * Получение студентов
- * @returns Promise<StudentInterface[]>
- */
-export const getStudentsDb = async (): Promise<StudentInterface[]> => {
-  const db = new sqlite3.Database(process.env.DB ?? './db/vki-web.db');
+const DB_PATH = process.env.DB ?? './db/vki-web.db';
 
-  const students = await new Promise((resolve, reject) => {
-    const sql = 'SELECT * FROM student';
-    db.all(sql, [], (err, rows) => {
-      if (err) {
-        reject(err);
+
+export const getStudentsDb = async (): Promise<StudentInterface[]> => {
+  const db = new sqlite3.Database(DB_PATH);
+
+  const students = await new Promise<StudentInterface[]>((resolve, reject) => {
+    db.all(
+      `SELECT id, firstName, lastName, middleName, 0 as isDeleted FROM student ORDER BY id DESC`,
+      [],
+      (err, rows) => {
+        if (err) {
+          reject(err);
+          db.close();
+          return;
+        }
+        resolve(rows as StudentInterface[]);
         db.close();
-        return;
       }
-      resolve(rows);
-      db.close();
-    });
+    );
   });
 
-  return students as StudentInterface[];
+  return students;
 };
 
-/**
- * Удаления студента
- * @param studentId
- * @returns
- */
-export const deleteStudentDb = async (studentId: number): Promise<number> => {
-  const db = new sqlite3.Database(process.env.DB ?? './db/vki-web.db');
 
-  await new Promise((resolve, reject) => {
-    db.run('DELETE FROM student WHERE id=?', [studentId], (err) => {
-      if (err) {
-        reject(err);
+export const addStudentDb = async (payload: {
+  firstName: string;
+  lastName: string;
+  middleName: string;
+  groupId: number;
+}): Promise<{ id: number } & typeof payload> => {
+  const db = new sqlite3.Database(DB_PATH);
+
+  const created = await new Promise<{ id: number } & typeof payload>((resolve, reject) => {
+    db.run(
+      `INSERT INTO student (firstName, lastName, middleName, groupId) VALUES (?, ?, ?, ?)`,
+      [payload.firstName, payload.lastName, payload.middleName, payload.groupId],
+      function (this: sqlite3.RunResult, err: Error | null) {
+        if (err) {
+          reject(err);
+          db.close();
+          return;
+        }
+        resolve({ id: Number(this.lastID), ...payload });
         db.close();
-        return;
       }
-      resolve(studentId);
-      db.close();
-    });
+    );
+  });
+
+  return created;
+};
+
+
+export const deleteStudentDb = async (studentId: number): Promise<number> => {
+  const db = new sqlite3.Database(DB_PATH);
+
+  await new Promise<void>((resolve, reject) => {
+    db.run(
+      `DELETE FROM student WHERE id = ?`,
+      [studentId],
+      (err) => {
+        if (err) {
+          reject(err);
+          db.close();
+          return;
+        }
+        resolve();
+        db.close();
+      }
+    );
   });
 
   return studentId;
 };
 
-/**
- * Добавление  рандомных студента
- * @param mount количество добавляемых записей - 10 по умолчанию
- * @returns
- */
-export const addRandomStudentsDb = async (amount: number = 10): Promise<FioInterface[]> => {
-  const db = new sqlite3.Database(process.env.DB ?? './db/vki-web.db');
 
-  const fios: FioInterface[] = [];
-  let fiosInsert: string = ''
-  for (let i = 0; i < amount; i++) {
-    const fio = getRandomFio();
-    fios.push(fio);
-    fiosInsert += `('${fio.firstName}', '${fio.lastName}', '${fio.middleName}', 1)`;
-    fiosInsert += `${i === amount - 1 ? ';' : ','}`;
-  }
+export const addRandomStudentsDb = async (): Promise<FioInterface[]> => {
+  const db = new sqlite3.Database(DB_PATH);
+  const fios: FioInterface[] = Array.from({ length: 10 }, () => getRandomFio());
 
-  await new Promise((resolve, reject) => {
-    db.run(`INSERT INTO student (firstName, lastName, middleName, groupId) VALUES ${fiosInsert}`, [], (err) => {
-      if (err) {
-        reject(err);
+  const fiosInsert = fios
+    .map((f) => `('${f.firstName}', '${f.lastName}', '${f.middleName}', 1)`)
+    .join(', ');
+
+  await new Promise<void>((resolve, reject) => {
+    db.run(
+      `INSERT INTO student (firstName, lastName, middleName, groupId) VALUES ${fiosInsert}`,
+      [],
+      (err) => {
+        if (err) {
+          reject(err);
+          db.close();
+          return;
+        }
+        resolve();
         db.close();
-        return;
       }
-      resolve(fios);
-      db.close();
-    });
+    );
   });
 
   return fios;
