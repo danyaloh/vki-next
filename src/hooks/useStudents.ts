@@ -1,76 +1,96 @@
-import {
-  useQuery,
-  useMutation,
-  useQueryClient,
-} from '@tanstack/react-query';
-import { deleteStudentApi, getStudentsApi } from '@/api/studentsApi';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+
 import type StudentInterface from '@/types/StudentInterface';
+import {
+  getStudentsApi,
+  deleteStudentApi,
+  addStudentApi,
+} from '@/api/studentsApi';
+import type { AddStudentPayload } from '@/api/studentsApi';
 
-interface StudentsHookInterface {
-  students: StudentInterface[];
-  deleteStudentMutate: (studentId: number) => void;
-}
+const QUERY_KEY = ['students'];
 
-const useStudents = (): StudentsHookInterface => {
+const useStudents = () => {
   const queryClient = useQueryClient();
 
-  const { data, refetch } = useQuery({
-    queryKey: ['students'],
-    queryFn: () => getStudentsApi(),
-    enabled: false,
+
+  const {
+    data: students = [],
+    isLoading,
+    isError,
+    error,
+  } = useQuery<StudentInterface[]>({
+    queryKey: QUERY_KEY,
+    queryFn: getStudentsApi,
   });
 
-  /**
-   * Мутация удаления студента
-   */
-  const deleteStudentMutate = useMutation({
-    // вызов API delete
-    mutationFn: async (studentId: number) => deleteStudentApi(studentId),
-    // оптимистичная мутация (обновляем данные на клиенте до API запроса delete)
+ 
+  const { mutate: deleteStudentMutate, isPending: isDeleting } = useMutation({
+    mutationFn: deleteStudentApi,
+
     onMutate: async (studentId: number) => {
-      await queryClient.cancelQueries({ queryKey: ['students'] });
-      // получаем данные из TanStackQuery
-      const previousStudents = queryClient.getQueryData<StudentInterface[]>(['students']);
-      let updatedStudents = [...(previousStudents ?? [])];
+      await queryClient.cancelQueries({ queryKey: QUERY_KEY });
+      const previous = queryClient.getQueryData<StudentInterface[]>(QUERY_KEY);
 
-      if (!updatedStudents) return;
+      queryClient.setQueryData<StudentInterface[]>(
+        QUERY_KEY,
+        (old = []) => old.filter((s) => s.id !== studentId),
+      );
 
-      // помечаем удаляемую запись
-      updatedStudents = updatedStudents.map((student: StudentInterface) => ({
-        ...student,
-        ...(student.id === studentId ? { isDeleted: true } : {}),
-      }));
-      // обновляем данные в TanStackQuery
-      queryClient.setQueryData<StudentInterface[]>(['students'], updatedStudents);
-
-      return { previousStudents, updatedStudents };
+      return { previous };
     },
-    onError: (err, variables, context) => {
-      console.log('>>> deleteStudentMutate  err', err);
-      queryClient.setQueryData<StudentInterface[]>(['students'], context?.previousStudents);
-    },
-    // обновляем данные в случаи успешного выполнения mutationFn: async (studentId: number) => deleteStudentApi(studentId),
-    onSuccess: async (studentId, variables, { previousStudents }) => {
-      await queryClient.cancelQueries({ queryKey: ['students'] });
-      // вариант 1 - запрос всех записей
-      // refetch();
-
-      // вариант 2 - удаление конкретной записи
-      if (!previousStudents) {
-        return;
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.previous) {
+        queryClient.setQueryData(QUERY_KEY, ctx.previous);
       }
-      const updatedStudents = previousStudents.filter((student: StudentInterface) => student.id !== studentId);
-      queryClient.setQueryData<StudentInterface[]>(['students'], updatedStudents);
     },
-    // onSettled: (data, error, variables, context) => {
-    //   // вызывается после выполнения запроса в случаи удачи или ошибке
-    //   console.log('>> deleteStudentMutate onSettled', data, error, variables, context);
-    // },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEY });
+    },
+  });
+
+  const { mutate: addStudentMutate, isPending: isAdding } = useMutation({
+    mutationFn: addStudentApi, 
+
+    onMutate: async (payload: AddStudentPayload) => {
+  await queryClient.cancelQueries({ queryKey: QUERY_KEY });
+  const previous = queryClient.getQueryData<StudentInterface[]>(QUERY_KEY);
+
+  const optimistic: StudentInterface = {
+    id: -Date.now(),
+    firstName: payload.firstName,
+    lastName: payload.lastName,
+    middleName: payload.middleName,
+    isDeleted: false, 
+    
+  };
+
+  queryClient.setQueryData<StudentInterface[]>(
+    QUERY_KEY,
+    (old = []) => [optimistic, ...old],
+  );
+
+  return { previous };
+},
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.previous) {
+        queryClient.setQueryData(QUERY_KEY, ctx.previous);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEY });
+    },
   });
 
   return {
-    students: data ?? [],
-    deleteStudentMutate: deleteStudentMutate.mutate,
+    students,
+    isLoading,
+    isError,
+    error,
+    deleteStudentMutate,
+    isDeleting,
+    addStudentMutate,
+    isAdding,
   };
 };
 
