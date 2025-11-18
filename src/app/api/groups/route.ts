@@ -1,4 +1,5 @@
-import { getGroupsDb } from '@/db/groupDb';
+import { getGroupsDb } from '../../../../db/groupDb';
+
 
 export async function GET(): Promise<Response> {
   const groups = await getGroupsDb();
