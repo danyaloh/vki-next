@@ -1,4 +1,4 @@
-// db/entity/Group.entity.ts
+
 import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
 @Entity()
@@ -9,7 +9,6 @@ export class Group {
   @Column()
   name!: string;
 
-  // Доп. информация (необязательно)
   @Column({ nullable: true })
   contacts?: string;
 }

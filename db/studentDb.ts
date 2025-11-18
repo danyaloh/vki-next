@@ -3,9 +3,7 @@ import type StudentInterface from '@/types/StudentInterface';
 import getRandomFio from '@/utils/getRandomFio';
 import { initializeDataSource } from './AppDataSource';
 
-/**
- * Получение всех студентов
- */
+
 export const getStudentsDb = async (): Promise<StudentInterface[]> => {
   const dataSource = await initializeDataSource();
   const studentRepository = dataSource.getRepository(Student);
@@ -15,7 +13,7 @@ export const getStudentsDb = async (): Promise<StudentInterface[]> => {
     relations: ['group'],
   });
 
-  // Приводим сущность к интерфейсу, который используется в UI
+
   return students.map((s) => ({
     id: s.id,
     firstName: s.firstName,
@@ -25,9 +23,7 @@ export const getStudentsDb = async (): Promise<StudentInterface[]> => {
   }));
 };
 
-/**
- * Получение одного студента по id
- */
+
 export const getStudentByIdDb = async (
   id: number,
 ): Promise<Student | null> => {
@@ -40,10 +36,7 @@ export const getStudentByIdDb = async (
   });
 };
 
-/**
- * Удаление студента
- * @param studentId ИД удаляемого студента
- */
+
 export const deleteStudentDb = async (studentId: number): Promise<number> => {
   const dataSource = await initializeDataSource();
   const studentRepository = dataSource.getRepository(Student);
@@ -60,9 +53,7 @@ type CreateStudentPayload = {
   groupId: number;
 };
 
-/**
- * Добавление студента
- */
+
 export const addStudentDb = async (
   studentFields: CreateStudentPayload,
 ): Promise<StudentInterface> => {
@@ -72,7 +63,7 @@ export const addStudentDb = async (
   const student = studentRepository.create(studentFields);
   const saved = await studentRepository.save(student);
 
-  // Возвращаем в формате StudentInterface
+
   return {
     id: saved.id,
     firstName: saved.firstName,
@@ -82,9 +73,7 @@ export const addStudentDb = async (
   };
 };
 
-/**
- * Добавление набора тестовых студентов
- */
+
 export const addRandomStudentsDb = async (
   amount = 10,
 ): Promise<StudentInterface[]> => {

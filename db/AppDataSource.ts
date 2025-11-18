@@ -1,4 +1,3 @@
-// db/AppDataSource.ts
 import 'reflect-metadata';
 import { DataSource } from 'typeorm';
 import { Group } from './entity/Group.entity';
