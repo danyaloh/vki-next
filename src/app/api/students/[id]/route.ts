@@ -1,4 +1,5 @@
-import { deleteStudentDb } from '@/db/studentDb';
+import { deleteStudentDb } from '../../../../../db/studentDb';
+
 import { type NextApiRequest } from 'next/types';
 
 interface Params {
