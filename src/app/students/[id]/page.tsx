@@ -1,18 +1,18 @@
 import Page from '@/components/layout/Page/Page';
 import { META_DESCRIPTION, META_TITLE } from '@/constants/meta';
 import type { Metadata } from 'next';
-import Students from '@/components/Students/Students';
+import Student from '../../../components/Students/Student';
 
 export const metadata: Metadata = {
-  title: `Студенты - ${META_TITLE}`,
+  title: `Студент - ${META_TITLE}`,
   description: META_DESCRIPTION,
 };
 
-const StudentsPage = (): React.ReactElement => (
+const StudentPage = (): React.ReactElement => (
   <Page>
-    <h1>Студенты</h1>
-    <Students />
+    <h1>Студент</h1>
+    <Student />
   </Page>
 );
 
-export default StudentsPage;
+export default StudentPage;

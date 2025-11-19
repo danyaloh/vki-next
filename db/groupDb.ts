@@ -1,28 +1,57 @@
 import { Group } from './entity/Group.entity';
-import type GroupInterface from '@/types/GroupInterface';
 import { initializeDataSource } from './AppDataSource';
+import type GroupInterface from '@/types/GroupInterface';
+import type StudentInterface from '@/types/StudentInterface';
 
-export const getGroupsDb = async (): Promise<GroupInterface[]> => {
-  const dataSource = await initializeDataSource();
-  const groupRepository = dataSource.getRepository(Group);
+const mapGroupToInterface = (g: Group): GroupInterface => {
+  const students: StudentInterface[] =
+    g.students?.map((s) => ({
+      id: s.id,
+      firstName: s.firstName,
+      lastName: s.lastName,
+      middleName: s.middleName,
+      isDeleted: false,
+      groupId: s.groupId,
+    })) ?? [];
 
-  const groups = await groupRepository.find({
-    order: { id: 'ASC' },
-  });
-
-  return groups as GroupInterface[];
+  return {
+    id: g.id,
+    name: g.name,
+    contacts: g.contacts ?? '',
+    students,
+  };
 };
 
-export const addGroupsDb = async (groupFields: Omit<GroupInterface, 'id'>): Promise<GroupInterface> => {
-  const dataSource = await initializeDataSource();
-  const groupRepository = dataSource.getRepository(Group);
+export const getGroupsDb = async (): Promise<GroupInterface[]> => {
+  const ds = await initializeDataSource();
+  const groupRepo = ds.getRepository(Group);
 
-  const group = new Group();
-
-  const newGroup = await groupRepository.save({
-    ...group,
-    ...groupFields,
+  const groups = await groupRepo.find({
+    order: { id: 'ASC' },
+    relations: ['students'],
   });
 
-  return newGroup;
+  return groups.map(mapGroupToInterface);
+};
+
+export const addGroupsDb = async (fields: {
+  name: string;
+  contacts?: string;
+}): Promise<GroupInterface> => {
+  const ds = await initializeDataSource();
+  const groupRepo = ds.getRepository(Group);
+
+  const entity = groupRepo.create({
+    name: fields.name,
+    contacts: fields.contacts,
+  });
+
+  const saved = await groupRepo.save(entity);
+
+  return {
+    id: saved.id,
+    name: saved.name,
+    contacts: saved.contacts ?? '',
+    students: [],
+  };
 };
