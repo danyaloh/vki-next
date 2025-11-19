@@ -3,45 +3,54 @@ import type StudentInterface from '@/types/StudentInterface';
 import getRandomFio from '@/utils/getRandomFio';
 import { initializeDataSource } from './AppDataSource';
 
+const mapStudentToInterface = (s: Student): StudentInterface => ({
+  id: s.id,
+  firstName: s.firstName,
+  lastName: s.lastName,
+  middleName: s.middleName,
+  isDeleted: false,
+  groupId: s.groupId,
+  group: s.group
+    ? {
+        id: s.group.id,
+        name: s.group.name,
+        contacts: s.group.contacts,
+      }
+    : undefined,
+
+});
 
 export const getStudentsDb = async (): Promise<StudentInterface[]> => {
-  const dataSource = await initializeDataSource();
-  const studentRepository = dataSource.getRepository(Student);
+  const ds = await initializeDataSource();
+  const repo = ds.getRepository(Student);
 
-  const students = await studentRepository.find({
+  const students = await repo.find({
     order: { id: 'DESC' },
     relations: ['group'],
   });
 
-
-  return students.map((s) => ({
-    id: s.id,
-    firstName: s.firstName,
-    lastName: s.lastName,
-    middleName: s.middleName,
-    isDeleted: false,
-  }));
+  return students.map(mapStudentToInterface);
 };
-
 
 export const getStudentByIdDb = async (
   id: number,
 ): Promise<Student | null> => {
-  const dataSource = await initializeDataSource();
-  const studentRepository = dataSource.getRepository(Student);
+  const ds = await initializeDataSource();
+  const repo = ds.getRepository(Student);
 
-  return await studentRepository.findOne({
-    where: { id },
+  const student = await repo.findOne({
+    order: { id: 'DESC' },
     relations: ['group'],
   });
+
+  return student;
 };
 
-
 export const deleteStudentDb = async (studentId: number): Promise<number> => {
-  const dataSource = await initializeDataSource();
-  const studentRepository = dataSource.getRepository(Student);
+  const ds = await initializeDataSource();
+  const repo = ds.getRepository(Student);
 
-  await studentRepository.delete(studentId);
+  await repo.delete(studentId);
   return studentId;
 };
 
@@ -53,26 +62,26 @@ type CreateStudentPayload = {
   groupId: number;
 };
 
-
 export const addStudentDb = async (
   studentFields: CreateStudentPayload,
 ): Promise<StudentInterface> => {
-  const dataSource = await initializeDataSource();
-  const studentRepository = dataSource.getRepository(Student);
+  const ds = await initializeDataSource();
+  const repo = ds.getRepository(Student);
 
-  const student = studentRepository.create(studentFields);
-  const saved = await studentRepository.save(student);
+  const student = repo.create(studentFields);
+  const saved = await repo.save(student);
 
+  const withGroup = await repo.findOne({
+    where: { id: saved.id },
+    relations: ['group'],
+  });
 
-  return {
-    id: saved.id,
-    firstName: saved.firstName,
-    lastName: saved.lastName,
-    middleName: saved.middleName,
-    isDeleted: false,
-  };
+  if (!withGroup) {
+    return mapStudentToInterface(saved);
+  }
+
+  return mapStudentToInterface(withGroup);
 };
-
 
 export const addRandomStudentsDb = async (
   amount = 10,

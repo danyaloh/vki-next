@@ -15,10 +15,11 @@ let isInitialized = false;
 
 export const initializeDataSource = async (): Promise<DataSource> => {
   if (!isInitialized) {
-    await AppDataSource.initialize();
+    if (!AppDataSource.isInitialized) {
+      await AppDataSource.initialize();
+    }
     isInitialized = true;
     console.log('Data Source has been initialized!');
-
     const groupRepo = AppDataSource.getRepository(Group);
     const count = await groupRepo.count();
 
@@ -27,7 +28,6 @@ export const initializeDataSource = async (): Promise<DataSource> => {
         name: 'Группа 1',
         contacts: '',
       });
-
       const saved = await groupRepo.save(defaultGroup);
       console.log('Created default group with id', saved.id);
     }

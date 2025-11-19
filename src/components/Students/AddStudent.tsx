@@ -1,6 +1,7 @@
 'use client';
 
 import { useForm } from 'react-hook-form';
+import useGroups from '@/hooks/useGroups';
 
 export type AddStudentForm = {
   firstName: string;
@@ -9,34 +10,41 @@ export type AddStudentForm = {
   groupId: number;
 };
 
+interface AddStudentProps {
+  onSubmit: (values: AddStudentForm) => void;
+  isSubmitting: boolean;
+}
+
 export default function AddStudent({
   onSubmit,
   isSubmitting,
-}: {
-  onSubmit: (v: AddStudentForm) => void;
-  isSubmitting?: boolean;
-}) {
+}: AddStudentProps): React.ReactElement {
+  const { groups } = useGroups();
+
   const {
     register,
     handleSubmit,
-    reset,
     formState: { errors },
+    reset,
   } = useForm<AddStudentForm>({
     defaultValues: {
       firstName: '',
       lastName: '',
       middleName: '',
-      groupId: 1,
+      groupId: undefined as unknown as number,
     },
   });
 
-  const submit = (data: AddStudentForm) => {
-    onSubmit({ ...data, groupId: Number(data.groupId) });
-    reset({ firstName: '', lastName: '', middleName: '', groupId: 1 });
+  const handleFormSubmit = (values: AddStudentForm): void => {
+    onSubmit(values);
+    reset();
   };
 
   return (
-    <form onSubmit={handleSubmit(submit)} className="space-y-3 max-w-md mb-6">
+    <form
+      className="flex flex-col gap-4 max-w-md"
+      onSubmit={handleSubmit(handleFormSubmit)}
+    >
       <div className="flex flex-col gap-1">
         <label className="font-medium">Фамилия</label>
         <input
@@ -44,7 +52,11 @@ export default function AddStudent({
           placeholder="Иванов"
           {...register('lastName', { required: 'Введите фамилию' })}
         />
-        {errors.lastName && <span className="text-red-600 text-sm">{errors.lastName.message}</span>}
+        {errors.lastName && (
+          <span className="text-red-600 text-sm">
+            {errors.lastName.message}
+          </span>
+        )}
       </div>
 
       <div className="flex flex-col gap-1">
@@ -54,7 +66,11 @@ export default function AddStudent({
           placeholder="Иван"
           {...register('firstName', { required: 'Введите имя' })}
         />
-        {errors.firstName && <span className="text-red-600 text-sm">{errors.firstName.message}</span>}
+        {errors.firstName && (
+          <span className="text-red-600 text-sm">
+            {errors.firstName.message}
+          </span>
+        )}
       </div>
 
       <div className="flex flex-col gap-1">
@@ -64,30 +80,43 @@ export default function AddStudent({
           placeholder="Иванович"
           {...register('middleName', { required: 'Введите отчество' })}
         />
-        {errors.middleName && <span className="text-red-600 text-sm">{errors.middleName.message}</span>}
+        {errors.middleName && (
+          <span className="text-red-600 text-sm">
+            {errors.middleName.message}
+          </span>
+        )}
       </div>
 
       <div className="flex flex-col gap-1">
-        <label className="font-medium">ID группы</label>
-        <input
+        <label className="font-medium">Группа</label>
+        <select
           className="border rounded px-3 py-2"
-          type="number"
-          min={1}
           {...register('groupId', {
             required: 'Укажите группу',
             valueAsNumber: true,
-            min: { value: 1, message: 'Минимум 1' },
           })}
-        />
-        {errors.groupId && <span className="text-red-600 text-sm">{errors.groupId.message}</span>}
+        >
+          <option value="">Выберите группу</option>
+          {groups.map((group) => (
+            <option key={group.id} value={group.id}>
+              {group.name}
+            </option>
+          ))}
+        </select>
+        {errors.groupId && (
+          <span className="text-red-600 text-sm">
+            {errors.groupId.message}
+          </span>
+        )}
       </div>
 
-      <button className="border rounded px-4 py-2 font-medium" type="submit" disabled={isSubmitting}>
+      <button
+        className="border rounded px-4 py-2 font-medium"
+        type="submit"
+        disabled={isSubmitting}
+      >
         {isSubmitting ? 'Добавляем…' : 'Добавить студента'}
       </button>
     </form>
   );
 }
-
-
-
