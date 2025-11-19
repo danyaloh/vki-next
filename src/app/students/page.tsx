@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   description: META_DESCRIPTION,
 };
 
-const StudentsPage = (): React.ReactElement => (
+const StudentsPage = (): React.ReactNode => (
   <Page>
     <h1>Студенты</h1>
     <Students />
