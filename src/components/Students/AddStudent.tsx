@@ -1,122 +1,143 @@
 'use client';
 
 import { useForm } from 'react-hook-form';
-import useGroups from '@/hooks/useGroups';
 
-export type AddStudentForm = {
-  firstName: string;
+import type GroupInterface from '@/types/GroupInterface';
+import type { AddStudentPayload } from '@/api/studentsApi';
+import styles from './Students.module.scss';
+
+type FormValues = {
   lastName: string;
+  firstName: string;
   middleName: string;
-  groupId: number;
+  groupId: string;
 };
 
 interface AddStudentProps {
-  onSubmit: (values: AddStudentForm) => void;
+  onSubmit: (payload: AddStudentPayload) => void;
   isSubmitting: boolean;
+  groups?: GroupInterface[];       
+  isGroupsLoading: boolean;
 }
 
-export default function AddStudent({
+const AddStudent = ({
   onSubmit,
   isSubmitting,
-}: AddStudentProps): React.ReactElement {
-  const { groups } = useGroups();
-
+  groups,
+  isGroupsLoading,
+}: AddStudentProps): React.ReactElement => {
   const {
     register,
     handleSubmit,
     formState: { errors },
     reset,
-  } = useForm<AddStudentForm>({
+  } = useForm<FormValues>({
     defaultValues: {
-      firstName: '',
       lastName: '',
+      firstName: '',
       middleName: '',
-      groupId: undefined as unknown as number,
+      groupId: '',
     },
   });
 
-  const handleFormSubmit = (values: AddStudentForm): void => {
-    onSubmit(values);
-    reset();
+  const handleFormSubmit = (values: FormValues): void => {
+    const payload: AddStudentPayload = {
+      lastName: values.lastName.trim(),
+      firstName: values.firstName.trim(),
+      middleName: values.middleName.trim(),
+      groupId: Number(values.groupId),
+    };
+
+    onSubmit(payload);
+    reset({
+      lastName: '',
+      firstName: '',
+      middleName: '',
+      groupId: '',
+    });
   };
+
+  const safeGroups: GroupInterface[] = Array.isArray(groups) ? groups : [];
 
   return (
     <form
-      className="flex flex-col gap-4 max-w-md"
+      className={styles.AddStudentForm}
       onSubmit={handleSubmit(handleFormSubmit)}
+      noValidate
     >
-      <div className="flex flex-col gap-1">
-        <label className="font-medium">Фамилия</label>
+      <div className={styles.AddStudentField}>
+        <label className={styles.AddStudentLabel}>Фамилия</label>
         <input
-          className="border rounded px-3 py-2"
+          className={styles.AddStudentInput}
           placeholder="Иванов"
           {...register('lastName', { required: 'Введите фамилию' })}
         />
         {errors.lastName && (
-          <span className="text-red-600 text-sm">
+          <span className={styles.AddStudentError}>
             {errors.lastName.message}
           </span>
         )}
       </div>
 
-      <div className="flex flex-col gap-1">
-        <label className="font-medium">Имя</label>
+      <div className={styles.AddStudentField}>
+        <label className={styles.AddStudentLabel}>Имя</label>
         <input
-          className="border rounded px-3 py-2"
+          className={styles.AddStudentInput}
           placeholder="Иван"
           {...register('firstName', { required: 'Введите имя' })}
         />
         {errors.firstName && (
-          <span className="text-red-600 text-sm">
+          <span className={styles.AddStudentError}>
             {errors.firstName.message}
           </span>
         )}
       </div>
 
-      <div className="flex flex-col gap-1">
-        <label className="font-medium">Отчество</label>
+      <div className={styles.AddStudentField}>
+        <label className={styles.AddStudentLabel}>Отчество</label>
         <input
-          className="border rounded px-3 py-2"
+          className={styles.AddStudentInput}
           placeholder="Иванович"
-          {...register('middleName', { required: 'Введите отчество' })}
+          {...register('middleName')}
         />
-        {errors.middleName && (
-          <span className="text-red-600 text-sm">
-            {errors.middleName.message}
-          </span>
-        )}
       </div>
 
-      <div className="flex flex-col gap-1">
-        <label className="font-medium">Группа</label>
+      <div className={styles.AddStudentField}>
+        <label className={styles.AddStudentLabel}>Группа</label>
         <select
-          className="border rounded px-3 py-2"
-          {...register('groupId', {
-            required: 'Укажите группу',
-            valueAsNumber: true,
-          })}
+          className={styles.AddStudentSelect}
+          {...register('groupId', { required: 'Выберите группу' })}
+          disabled={isGroupsLoading || safeGroups.length === 0}
         >
-          <option value="">Выберите группу</option>
-          {groups.map((group) => (
-            <option key={group.id} value={group.id}>
-              {group.name}
+          <option value="">
+            {isGroupsLoading
+              ? 'Загрузка групп...'
+              : safeGroups.length === 0
+              ? 'Группы не найдены'
+              : 'Выберите группу'}
+          </option>
+          {safeGroups.map((g) => (
+            <option key={g.id} value={g.id}>
+              {g.name}
             </option>
           ))}
         </select>
         {errors.groupId && (
-          <span className="text-red-600 text-sm">
+          <span className={styles.AddStudentError}>
             {errors.groupId.message}
           </span>
         )}
       </div>
 
       <button
-        className="border rounded px-4 py-2 font-medium"
+        className={styles.AddStudentSubmit}
         type="submit"
-        disabled={isSubmitting}
+        disabled={isSubmitting || isGroupsLoading || safeGroups.length === 0}
       >
         {isSubmitting ? 'Добавляем…' : 'Добавить студента'}
       </button>
     </form>
   );
-}
+};
+
+export default AddStudent;

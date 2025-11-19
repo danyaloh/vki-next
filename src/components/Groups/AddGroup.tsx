@@ -1,6 +1,7 @@
 'use client';
 
 import { useForm } from 'react-hook-form';
+import styles from './AddGroup.module.scss';
 
 export type AddGroupForm = {
   name: string;
@@ -35,25 +36,33 @@ const AddGroup = ({
 
   return (
     <form
-      className="flex flex-col gap-4 max-w-md mb-6"
+      className={styles.Form}
       onSubmit={handleSubmit(handleFormSubmit)}
+      noValidate
     >
-      <div className="flex flex-col gap-1">
-        <label className="font-medium">Название группы</label>
+      <div className={styles.Field}>
+        <label className={styles.Label}>Название группы</label>
         <input
-          className="border rounded px-3 py-2"
-          placeholder="Группа 1"
+          className={styles.Input}
+          placeholder="Например: 2207d2"
           {...register('name', { required: 'Введите название группы' })}
         />
         {errors.name && (
-          <span className="text-red-600 text-sm">
-            {errors.name.message}
-          </span>
+          <span className={styles.Error}>{errors.name.message}</span>
         )}
       </div>
 
+      <div className={styles.Field}>
+        <label className={styles.Label}>Контакты (необязательно)</label>
+        <input
+          className={styles.Input}
+          placeholder="Куратор, контакты…"
+          {...register('contacts')}
+        />
+      </div>
+
       <button
-        className="border rounded px-4 py-2 font-medium"
+        className={styles.SubmitButton}
         type="submit"
         disabled={isSubmitting}
       >

@@ -1,17 +1,23 @@
 .Menu {
   display: flex;
-  background-color: var(--background2);
-  justify-content: flex-start;
-  gap: 40px;
-  align-items: center;
-  font-size: 18px;
-  color: var(--color);
-  a {
-    color: var(--color);
-    text-decoration: none;
-  }
+  gap: 16px;
 }
 
-.linkActive {
-  text-decoration: underline;
+.Link {
+  font-size: 14px;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  padding: 4px 8px;
+  border-radius: 999px;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.Link:hover {
+  color: var(--color-text);
+  background: rgba(196, 122, 255, 0.16);
+}
+
+.LinkActive {
+  color: var(--color-text);
+  background: rgba(196, 122, 255, 0.28);
 }

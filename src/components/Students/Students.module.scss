@@ -1,3 +1,97 @@
-.Students {
-  
+
+.StudentsPage {
+  padding-top: 24px;
+}
+
+.StudentsLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) 340px;
+  gap: 32px;
+  align-items: flex-start;
+}
+
+.StudentsListSection {
+  min-width: 0;
+}
+
+.StudentsList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 20px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+
+.StudentCard {
+  display: flex;
+  align-items: center;
+  padding: 14px 18px;
+  border-radius: 18px;
+  background: linear-gradient(90deg, #4b0088, #30005c);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+
+.StudentInfo {
+  flex: 1 1 auto;
+  margin-right: 16px;
+  text-decoration: none;
+  color: #ffffff;
+}
+
+.StudentName {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.StudentGroup {
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+.DeleteButton {
+  flex: 0 0 150px;          
+  margin-left: auto;         
+  text-align: center;
+
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+
+  background: linear-gradient(90deg, #ff72ff, #e056ff);
+  color: #ffffff;
+
+  transition: transform 0.1s ease, box-shadow 0.1s ease, opacity 0.1s ease;
+}
+
+.DeleteButton:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.DeleteButton:not(:disabled):hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+}
+
+.AddStudentPanel {
+  padding: 18px 20px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #7b1fa2, #4a148c);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
+  min-width: 0;
+}
+
+.AddStudentTitle {
+  margin: 0 0 12px;
+}
+
+.AddStudentError {
+  color: #ffaaaa;
+  font-size: 0.9rem;
 }
